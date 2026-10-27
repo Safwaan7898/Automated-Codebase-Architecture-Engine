@@ -1,0 +1,58 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+src = ["app", "parsers", "ingestion", "analysis", "tests"]
+extend-exclude = [
+    "samples",
+    "benchmarks/cache",
+    "benchmarks/results",
+    "data",
+    "reports_output",
+    ".reports_storage",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "N",   # pep8-naming
+    "ANN", # flake8-annotations (type hints)
+    "S",   # flake8-bandit (security)
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "S101",    # use of assert (fine in tests)
+    "ANN401",  # Dynamically typed expressions (Any) are disallowed
+    "S104",    # binding to all interfaces is expected in dev server config
+    "RUF100",  # unused noqa
+    "UP038",   # non-essential syntax modernization
+    "B008",    # FastAPI parameter defaults (File, Form, Depends)
+    "S105",    # Hardcoded password/secret strings in default settings
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ANN", "S", "N", "UP", "I001", "F841", "F401", "E501", "RUF012", "B905"]
+"parsers/**" = ["ANN", "N", "S"]
+"ingestion/**" = ["ANN", "N", "S603", "S607"]
+"analysis/**" = ["ANN", "N"]
+"app/auth/**" = ["ANN", "N", "S", "B904"]
+"app/api/**" = ["ANN", "N", "S", "B904"]
+"app/api/ws_analyze.py" = ["S110"]
+"reports/**" = ["ANN", "N", "E501", "RUF001", "RUF003", "S", "B904"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-v --tb=short"
+markers = [
+    "integration: marks tests that require sample repos to be cloned (deselect with -m 'not integration')",
+]

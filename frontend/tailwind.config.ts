@@ -1,0 +1,127 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        heading: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+        sans:    ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+        mono:    ['"JetBrains Mono"', 'monospace'],
+        display: ['"Space Grotesk"', 'sans-serif'],
+        manrope: ['"Manrope"', 'system-ui', '-apple-system', 'sans-serif'],
+        syne:    ['"Syne"', 'system-ui', '-apple-system', 'sans-serif'],
+        inter:   ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      colors: {
+        bg:          'var(--bg)',
+        surface: {
+          DEFAULT:   'var(--surface)',
+          2:         'var(--surface-2)',
+          hover:     'var(--surface-hover)',
+          border:    'var(--surface-border)',
+          900:       'var(--bg)',
+          800:       'var(--surface)',
+          700:       'var(--surface-2)',
+          600:       'var(--surface-2)',
+          500:       'var(--text-muted)',
+        },
+        border: {
+          DEFAULT:   'var(--border)',
+          subtle:    'var(--border-subtle)',
+        },
+        text: {
+          DEFAULT:   'var(--text)',
+          primary:   'var(--text-primary)',
+          muted:     'var(--text-muted)',
+          secondary: 'var(--text-secondary)',
+        },
+        accent: {
+          DEFAULT:   'var(--accent)',
+          contrast:  'var(--accent-contrast)',
+          text:      'var(--accent-text)',
+        },
+        danger:      'var(--danger)',
+        warning:     'var(--warning)',
+        success:     'var(--success)',
+        info:        'var(--info)',
+        obsidian:    'var(--accent-contrast)',
+        paper:       'var(--bg)',
+        // Legacy agencia tokens mapped to semantic variables
+        agencia: {
+          bg:           'var(--agencia-bg)',
+          surface:      'var(--agencia-surface)',
+          surfaceHover: 'var(--agencia-surfaceHover)',
+          muted:        'var(--agencia-muted)',
+          border:       'var(--agencia-border)',
+          borderLight:  'var(--agencia-borderLight)',
+          blue:         'var(--accent)',
+          electric:     'var(--accent)',
+        },
+        brand: {
+          50:  '#f5ffd5',
+          100: '#eaff9f',
+          200: '#d8ff5c',
+          300: '#C6F432',
+          400: '#aad618',
+          500: '#88ab0f',
+          600: '#688708',
+          700: '#506600',
+          800: '#3a4d00',
+          900: '#283400',
+          950: '#141a00',
+        },
+      },
+      transitionTimingFunction: {
+        spring: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+        smooth: 'cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+      transitionDuration: {
+        '250': '250ms',
+        '350': '350ms',
+        '800': '800ms',
+      },
+      backgroundImage: {
+        'grid-dark':    'radial-gradient(rgba(198,244,50,0.06) 1px, transparent 1px)',
+        'grid-light':   'radial-gradient(rgba(11,13,12,0.05) 1px, transparent 1px)',
+        'spotlight':    'radial-gradient(circle at 50% 0%, rgba(198,244,50,0.12) 0%, transparent 65%)',
+        'subtle-grid':  'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)',
+      },
+      boxShadow: {
+        'glass':        '0 8px 32px rgba(0,0,0,0.35)',
+        'glass-light':  '0 4px 24px rgba(0,0,0,0.08)',
+        'accent-glow':  '0 0 25px rgba(198,244,50,0.35)',
+        'danger-glow':  '0 0 25px rgba(255,59,48,0.4)',
+        'card':         '0 4px 24px rgba(0,0,0,0.5)',
+      },
+      backdropBlur: {
+        xs: '2px',
+        card: '20px',
+      },
+      animation: {
+        'page-in':      'page-in 0.3s cubic-bezier(0.4,0,0.2,1)',
+        'shimmer':      'skeleton-shimmer 1.6s infinite',
+        'float':        'float 6s ease-in-out infinite',
+        'pulse-ring':   'pulse-ring 2s cubic-bezier(0.4,0,0.6,1) infinite',
+        'counter':      'count-up 1s ease-out forwards',
+        'spin-slow':    'spin 8s linear infinite',
+        'bounce-dot':   'bounce-dot 1.4s ease-in-out infinite',
+      },
+      keyframes: {
+        float: {
+          '0%,100%': { transform: 'translateY(0)' },
+          '50%':     { transform: 'translateY(-10px)' },
+        },
+        'pulse-ring': {
+          '0%,100%': { opacity: '1' },
+          '50%':     { opacity: '0.5' },
+        },
+        'bounce-dot': {
+          '0%,80%,100%': { transform: 'scale(0)' },
+          '40%':          { transform: 'scale(1)' },
+        },
+      },
+    },
+  },
+  plugins: [],
+}

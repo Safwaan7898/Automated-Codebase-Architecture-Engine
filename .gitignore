@@ -1,0 +1,79 @@
+# ── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+ENV/
+pip-wheel-metadata/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+.hypothesis/
+
+# ── Node / Frontend ──────────────────────────────────────────────────────────
+node_modules/
+dist/
+.next/
+.nuxt/
+.output/
+*.local
+
+# ── Environment / Secrets ────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# ── IDEs ─────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+*.bak
+*.tmp
+*.db
+*.sqlite
+*.sqlite3
+.reports_storage/
+reports_output/
+scratch/
+test-results/
+playwright-report/
+blob-report/
+frontend/e2e/screenshots/
+*.png
+!frontend/e2e/fixtures/sample.png
+
+# ── ArchLens Data Directory ──────────────────────────────────────────────────
+data/
+backend/data/
+
+frontend/test-results/
+frontend/playwright-report/
+backend/benchmarks/results/
+backend/benchmarks/.cache/
+backend/benchmarks/cache/
+.benchmarks_cache/

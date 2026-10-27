@@ -1,0 +1,52 @@
+# ArchLens AI Capabilities & Verification Matrix (`docs/AI_FEATURES.md`)
+
+This document provides a comprehensive operational, verification, and traceability matrix for all AI capabilities across ArchLens Agencia, covering the 11 core AI features, the AskArchLens interactive assistant, and P2 architectural visualization enhancements.
+
+---
+
+## Operating Invariants & Safety Guarantees
+
+1. **Deterministic Authority**: AI never computes, mutates, or overrides graph topology, cycle detection, cyclomatic complexity, health scores, grades, or diagnostic finding counts.
+2. **Schema & Citation Validation**: All model outputs are schema-validated using Pydantic; any hallucinated symbol, invalid module reference, or unrecognized line number is discarded.
+3. **Deterministic Fallbacks**: Every AI capability provides an immediate, zero-latency deterministic fallback if the model is unreachable, times out, throws a rate limit error (429), or is toggled off by the user.
+4. **Transparent Labeling**: All generated text is visually labeled as `AI-generated` (`AIBadge`) in the UI and PDF reports, with fallback text marked as `Deterministic fallback` (`AIFallback`).
+5. **Prompt Injection Resistance**: Codebase content (source files, docstrings, identifiers) is treated as untrusted data. Injected directives (e.g., `"ignore previous instructions"`) have zero effect on scoring or execution.
+6. **Zero Network Calls in Tests**: Test suites never dispatch live external LLM or OSV requests; all provider interactions and endpoints are mocked or fall back deterministically.
+
+---
+
+## AI Features Verification & Traceability Matrix
+
+| Feature | What the AI Does | How It Is Verified | Fallback | Test Name | Frontend File |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **1. Per-Analysis AI Toggle & Consent Gate** | Dispatches or completely suppresses LLM calls based on per-analysis user consent (`allow_ai`). | Asserts graph nodes, edges, cycles, and health metrics are identical whether `allow_ai` is True or False; zero external provider requests dispatched when False. | Deterministic AST, SCC, and rule engine execution. | `backend/tests/test_phase6_invariants.py::test_ai_on_off_identical_metrics` | `frontend/src/pages/IngestionPage.tsx` |
+| **2. Dashboard Executive Summary** | Synthesizes a high-level executive architectural summary of health score, maintainability, and coupling risks. | Schema-validated via Pydantic `AIDashboardSummary`; verified invariant that deterministic scores are untouched. | Deterministic summary template generated from health score, cyclomatic complexity, and circular cycle counts. | `backend/tests/test_phase6_invariants.py::test_all_11_features_deterministic_fallback` | `frontend/src/pages/DashboardPage.tsx` |
+| **3. Metric Interpretation & Anomaly Context** | Generates context-aware architectural explanations for metric anomalies (high Martin instability, excessive CC, high blast radius). | Schema-validated via `AIMetricExplanation`; verifies that referenced module names exist in graph nodes. | Pre-computed explanation based on metric thresholds and standard architectural best practices. | `backend/tests/test_phase6_invariants.py::test_all_11_features_deterministic_fallback` | `frontend/src/pages/MetricsPage.tsx` |
+| **4. Diagnostic & Code Smell Explanations** | Explains why a detected code smell (God Class, Circular Dependency, Feature Envy) degrades maintainability and suggests remedies. | Schema-validated via `AISmellFixSuggestion`; validates smell ID and affected node references against real graph data. | Rule-specific deterministic remediation text defined in diagnostic rule metadata. | `backend/tests/test_phase6_invariants.py::test_all_11_features_deterministic_fallback` | `frontend/src/pages/SecurityPage.tsx` |
+| **5. Security Finding Enrichment** | Provides context on security vulnerabilities, false-positive likelihood assessments, and remediation patterns without altering finding severities. | Invariant test asserts that finding count and severity classifications are identical with AI enabled or disabled. | Static CWE/OWASP remediation guidance and remediation code templates. | `backend/tests/test_phase6_invariants.py::test_security_ai_never_changes_finding_count` | `frontend/src/pages/SecurityPage.tsx` |
+| **6. Architectural Narrative Reports** | Produces structured architectural narratives ("What This Means", "Why It Matters", "Recommended Actions") for executive stakeholders. | Schema-validated via `AIReportNarrative` and exposed via `POST /api/reports/narrative`. | Deterministic template generated from health sub-scores, top risk items, and detected architectural cycles. | `backend/tests/test_phase6_invariants.py::test_report_narrative_http_route` | `frontend/src/pages/ReportsPage.tsx` |
+| **7. Topology Community Cluster Naming** | Assigns semantic architectural domain names (e.g., "Order Processing Service", "Authentication Core") to Louvain community clusters based on member namespaces. | Schema-validated via `AITopologySummary`; checked that every cluster ID corresponds to an existing Louvain community partition. | Synthesized name from the most frequent package prefix among cluster member nodes. | `backend/tests/test_phase6_invariants.py::test_all_11_features_deterministic_fallback` | `frontend/src/pages/GraphPage.tsx` |
+| **8. Natural Language Architectural Graph Filter** | Converts natural-language queries (e.g., "show python modules with complexity > 15 in the service layer") into structured AST graph filters. | Schema-validated via `AINLSearchFilter`; filtering execution is purely deterministic against graph nodes. | Token-based keyword matching across module IDs, labels, and file paths. | `backend/tests/test_phase6_invariants.py::test_all_11_features_deterministic_fallback` | `frontend/src/pages/GraphPage.tsx` |
+| **9. Ask ArchLens Architectural Chat (RAG)** | Answers interactive architectural queries about the codebase by retrieving facts from deterministic graph algorithms and diagnostic engines. | Citation validator ensures every cited node ID or file path exists in the analyzed repository graph; hallucinations are rejected; prompt injection resistance verified. | Structured fact sheet generated directly from graph metrics, top bottlenecks, circular cycles, and diagnostic findings. | `backend/tests/test_phase6_invariants.py::test_prompt_injection_safety` | `frontend/src/components/graph/AskArchLensDrawer.tsx` |
+| **10. Admin AI Token Usage & Cost Analytics** | Tracks token consumption, estimated USD costs, and provider health per feature call in the encrypted audit log. | Validated via `GET /api/admin/ai/usage`; asserts that zero source code or private keys are stored in audit records. | Deterministic in-memory counter aggregation across system logs. | `backend/tests/test_ai_chain.py` | `frontend/src/pages/AdminAiUsagePage.tsx` |
+| **11. AI-Augmented Refactoring Sandbox** | Drafts unified diff patches (`.patch`) to remediate smells lacking deterministic strategies (Hub Modules, SDP Violations, Feature Envy). | Validated in sandbox: `git apply --check` verifies clean patch application, AST parsing verifies zero new syntax errors, and re-analysis confirms smell is eliminated without creating cycles (max 2 repair iterations). | Deterministic refactoring suggestions (Cycle Breaker, God Class Splitter, Method Mover, Module Extractor). | `backend/tests/test_phase6_invariants.py::test_refactor_validator_bad_patch_rejected` | `frontend/src/pages/SecurityPage.tsx` |
+| **P2: Hotspot Quadrant & Risk Interpretation** | Explains high-risk architectural hotspots (Complexity x Risk x LOC) and provides remediation guidance. | Schema-validated via `AIMetricExplanation`; verifies hotspot node exists in graph. | Deterministic quadrant risk breakdown (Complexity, Churn, Risk Score). | `frontend/e2e/p2-insights-projects.spec.ts` | `frontend/src/components/insights/HotspotBubbleChart.tsx` |
+| **P2: Inter-Tier Chord Arc Routing Analysis** | Explains architectural layer boundary crossings, tier inversions, and forbidden calls. | Schema-validated via `AIMetricExplanation`; asserts tier dependencies match graph edges. | Deterministic tier coupling summary and inversion count. | `frontend/e2e/p2-insights-projects.spec.ts` | `frontend/src/components/insights/ChordArcDiagram.tsx` |
+| **P2: Polyglot Language Breakdown** | Analyzes multi-language codebase distribution (Python, TypeScript, Go, Java) and provides migration advice. | Schema-validated via `AIMetricExplanation`; verifies LOC counts match analyzer results. | Deterministic LOC and file distribution percentages table. | `frontend/e2e/p2-insights-projects.spec.ts` | `frontend/src/components/insights/LanguageBreakdownDonut.tsx` |
+| **P2: Portfolio Risk & Comparison** | Generates side-by-side architectural diff and risk comparison across multiple repositories in workspace. | Schema-validated via `AIReportNarrative`; verifies both compared project IDs exist. | Deterministic comparative delta table (Health Score, Total Findings, Risk Score diffs). | `frontend/e2e/p2-insights-projects.spec.ts` | `frontend/src/pages/ProjectsPage.tsx` |
+
+---
+
+## Unsupported Language Edge Inference
+
+When non-standard or unsupported language source files are present in the repository, the engine executes `infer_unsupported_language_edges` with deterministic safety bounds:
+- **Prerequisites**: AI enabled, user consent granted, and confidence threshold satisfied.
+- **Invariants**: Inferred edges are tagged with confidence `ai_inferred` and visual dotted styling.
+- **Drop Policy**: Inferred edges connecting non-existent source or target nodes are dropped deterministically.
+
+---
+
+## Architecture Engine Benchmarks
+
+- **Self-Consistency on Fixtures**: Fast (~45 ms), deterministic regression suite testing 4 curated micro-codebase fixtures in `backend/tests/fixtures/benchmarks/` for node, edge, and cycle self-consistency in memory (`python -m benchmarks.runner`).
+- **Real External Benchmarks**: Compares ArchLens against independent ecosystem reference tools (`madge` via npx, `importlib/ast`, `go list -deps`, `jdeps`) on real pinned open-source repositories (`python -m benchmarks.runner --external`). Detailed metrics, precision, recall, F1, and discrepancy reasons are documented in [`docs/benchmarks.md`](file:///c:/Users/mmoha/Automated%20Codebase%20architecture%20Engine%20full%20project%20-%20FINAL/docs/benchmarks.md).

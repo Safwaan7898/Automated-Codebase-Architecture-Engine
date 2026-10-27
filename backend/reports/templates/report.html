@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ report.metadata.title }} - {{ report.metadata.repo_name }}</title>
+<style>
+  /* ── Dedicated Light-Mode A4 Print Stylesheet ─────────────────────────────── */
+  @page {
+    size: A4 portrait;
+    margin: 18mm 14mm 18mm 14mm;
+    @top-left {
+      content: "Architecture Diagnostic Report · {{ report.metadata.repo_name }}";
+      font-size: 7.5pt;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    @top-right {
+      content: "{{ report.metadata.generated_at }}";
+      font-size: 7.5pt;
+      font-family: monospace;
+      color: #94a3b8;
+    }
+    @bottom-left {
+      content: "ArchLens v{{ report.metadata.parser_version }} · {{ report.metadata.repo_name }} · {{ report.metadata.branch }}@{{ (report.metadata.commit_sha or report.metadata.commit_hash)[:7] }} · SHA:{{ (report.metadata.source_fingerprint or 'N/A')[:12] }}";
+      font-size: 7pt;
+      font-family: monospace;
+      color: #94a3b8;
+    }
+    @bottom-right {
+      content: "{{ report.metadata.generated_at }} · Page " counter(page) " of " counter(pages);
+      font-size: 7.5pt;
+      font-family: monospace;
+      color: #94a3b8;
+    }
+  }
+
+  @page :first {
+    @top-left { content: none; }
+    @top-right { content: none; }
+    @bottom-left { content: none; }
+    @bottom-right { content: none; }
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #0f172a;
+    background-color: #ffffff !important;
+    line-height: 1.5;
+    font-size: 9.5pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Page break utilities */
+  .page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* ── 1. COVER PAGE ────────────────────────────────────────────────────────── */
+  .cover-container {
+    height: 100%;
+    min-height: 250mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20mm 10mm 15mm 10mm;
+  }
+
+  .cover-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 15px;
+  }
+
+  .brand-badge {
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 14pt;
+    font-weight: 900;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-family: monospace;
+  }
+
+  .brand-name {
+    font-size: 16pt;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .brand-accent {
+    color: #2563eb;
+  }
+
+  .cover-body {
+    margin-top: 30mm;
+    margin-bottom: 30mm;
+  }
+
+  .cover-tag {
+    display: inline-block;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 8.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+
+  .cover-title {
+    font-size: 32pt;
+    font-weight: 900;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    color: #0f172a;
+    margin: 0 0 15px 0;
+  }
+
+  .cover-subtitle {
+    font-size: 12pt;
+    color: #475569;
+    max-width: 80%;
+    line-height: 1.5;
+    margin-bottom: 35px;
+  }
+
+  .cover-metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 520px;
+  }
+
+  .meta-item {
+    font-size: 9pt;
+  }
+
+  .meta-label {
+    font-size: 7.5pt;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .meta-val {
+    font-weight: 700;
+    color: #0f172a;
+    font-family: monospace;
+  }
+
+  .cover-footer {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 8pt;
+    color: #64748b;
+  }
+
+  /* ── SECTION HEADINGS ─────────────────────────────────────────────────────── */
+  .section {
+    margin-bottom: 24px;
+  }
+
+  .section-header {
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 6px;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .section-title {
+    font-size: 14pt;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    text-transform: uppercase;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .section-title span {
+    color: #2563eb;
+    margin-right: 6px;
+  }
+
+  /* ── PLAIN-ENGLISH CALLOUT BOX ────────────────────────────────────────────── */
+  .callout-box {
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-left: 4px solid #2563eb;
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin: 14px 0 18px 0;
+    break-inside: avoid;
+  }
+
+  .callout-header {
+    font-size: 8pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #1e293b;
+    margin-bottom: 6px;
+  }
+
+  .callout-row {
+    font-size: 8.5pt;
+    line-height: 1.45;
+    margin-bottom: 4px;
+    display: flex;
+    gap: 6px;
+  }
+
+  .callout-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .callout-tag {
+    font-weight: 700;
+    color: #0f172a;
+    flex-shrink: 0;
+  }
+
+  .callout-tag-means { color: #0284c7; }
+  .callout-tag-matters { color: #ea580c; }
+  .callout-tag-action { color: #16a34a; }
+
+  /* ── TRAFFIC LIGHT STATUS & SCORE CARDS ───────────────────────────────────── */
+  .traffic-light-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 8.5pt;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .traffic-green { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+  .traffic-amber { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+  .traffic-red { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+  .status-circle {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .status-circle-green { background: #16a34a; }
+  .status-circle-amber { background: #d97706; }
+  .status-circle-red { background: #dc2626; }
+
+  .stat-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 14px 0;
+  }
+
+  .stat-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .stat-card-num {
+    font-size: 16pt;
+    font-weight: 900;
+    color: #0f172a;
+    font-family: monospace;
+    line-height: 1.1;
+  }
+
+  .stat-card-label {
+    font-size: 7pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── TABLES ───────────────────────────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+    margin: 12px 0;
+    break-inside: avoid;
+  }
+
+  th {
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 7.5pt;
+    letter-spacing: 0.5px;
+    padding: 8px 10px;
+    border-bottom: 1.5px solid #cbd5e1;
+    text-align: left;
+  }
+
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+
+  .severity-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-size: 7.5pt;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    font-family: monospace;
+  }
+
+  .badge-critical { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; }
+  .badge-high { background: #ffedd5; color: #c2410c; border: 1px solid #fb923c; }
+  .badge-medium { background: #fef3c7; color: #b45309; border: 1px solid #facc15; }
+  .badge-low { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+
+  /* ── GLOSSARY ─────────────────────────────────────────────────────────────── */
+  .glossary-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    break-inside: avoid;
+  }
+
+  .glossary-term {
+    font-size: 10pt;
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .glossary-def {
+    font-size: 8.5pt;
+    color: #334155;
+    margin-bottom: 4px;
+  }
+
+  .glossary-analogy {
+    font-size: 8.5pt;
+    color: #0369a1;
+    background: #f0f9ff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border-left: 3px solid #0284c7;
+    font-style: italic;
+  }
+
+  /* ── VISUAL CHARTS GRID ───────────────────────────────────────────────────── */
+  .chart-row-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+    break-inside: avoid;
+  }
+
+  .chart-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px;
+    break-inside: avoid;
+  }
+
+  /* ── ACTION PLAN CARDS ────────────────────────────────────────────────────── */
+  .action-tier {
+    margin-bottom: 14px;
+    break-inside: avoid;
+  }
+
+  .action-tier-header {
+    font-size: 10pt;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tier-fix-now { background: #fee2e2; color: #991b1b; border-left: 4px solid #dc2626; }
+  .tier-next-sprint { background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; }
+  .tier-later { background: #f1f5f9; color: #334155; border-left: 4px solid #64748b; }
+
+  .action-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    break-inside: avoid;
+  }
+
+  .action-title {
+    font-size: 9pt;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .action-desc {
+    font-size: 8pt;
+    color: #475569;
+    margin-top: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- 1. COVER PAGE                                                               -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="cover-container">
+  <div class="cover-brand">
+    <div class="brand-badge">AL</div>
+    <div class="brand-name">ARCHLENS<span class="brand-accent">.</span></div>
+    <div style="margin-left: auto; font-size: 8pt; color: #64748b; font-family: monospace;">AUTOMATED ARCHITECTURE INTELLIGENCE</div>
+  </div>
+
+  <div class="cover-body">
+    <div class="cover-tag">EXECUTIVE DIAGNOSTIC AUDIT</div>
+    <h1 class="cover-title">{{ report.metadata.title }}</h1>
+    <div class="cover-subtitle">
+      Automated structural decomposition, dependency cycle isolation, and security vulnerability assessment for engineering leadership and architectural governance.
+    </div>
+
+    <div class="cover-metadata-grid">
+      <div class="meta-item">
+        <span class="meta-label">Target Repository</span>
+        <span class="meta-val">{{ report.metadata.repo_name }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Overall Health Grade</span>
+        <span class="meta-val" style="color: #2563eb; font-size: 11pt;">
+          {% if report.executive_summary.health_status == 'insufficient_data' %}
+            Not enough data
+          {% else %}
+            {{ report.executive_summary.grade or 'Not enough data' }}{% if report.executive_summary.health_score is not none %} ({{ report.executive_summary.health_score | round | int }}/100){% endif %}
+          {% endif %}
+        </span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Branch &amp; Commit SHA</span>
+        <span class="meta-val">{{ report.metadata.branch }} ({{ (report.metadata.commit_sha or report.metadata.commit_hash)[:7] }})</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Source Fingerprint</span>
+        <span class="meta-val">{{ (report.metadata.source_fingerprint or 'N/A')[:12] }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Parser Version</span>
+        <span class="meta-val">v{{ report.metadata.parser_version }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Analysis Timestamp</span>
+        <span class="meta-val">{{ report.metadata.generated_at }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Analysis ID</span>
+        <span class="meta-val">{{ report.metadata.report_id }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Operational Status</span>
+        <span class="meta-val">
+          {% if report.executive_summary.status_indicator == 'GREEN' %}
+            <span style="color: #16a34a;">● {{ report.executive_summary.status_label }}</span>
+          {% elif report.executive_summary.status_indicator == 'AMBER' %}
+            <span style="color: #d97706;">▲ {{ report.executive_summary.status_label }}</span>
+          {% elif report.executive_summary.status_indicator == 'GREY' %}
+            <span style="color: #64748b;">■ {{ report.executive_summary.status_label }}</span>
+          {% else %}
+            <span style="color: #dc2626;">■ {{ report.executive_summary.status_label }}</span>
+          {% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="cover-footer">
+    <div>ArchLens v{{ report.metadata.parser_version }} · {{ report.metadata.repo_name }} ({{ report.metadata.branch }}@{{ (report.metadata.commit_sha or report.metadata.commit_hash)[:7] }}) · Fingerprint: {{ (report.metadata.source_fingerprint or 'N/A')[:12] }}</div>
+    <div>Generated: {{ report.metadata.generated_at }}</div>
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- 2. EXECUTIVE SUMMARY                                                        -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title"><span>01</span> Executive Summary</div>
+    <div>
+      {% if report.executive_summary.status_indicator == 'GREEN' %}
+        <span class="traffic-light-badge traffic-green"><span class="status-circle status-circle-green"></span> {{ report.executive_summary.status_label }}</span>
+      {% elif report.executive_summary.status_indicator == 'AMBER' %}
+        <span class="traffic-light-badge traffic-amber"><span class="status-circle status-circle-amber"></span> {{ report.executive_summary.status_label }}</span>
+      {% elif report.executive_summary.status_indicator == 'GREY' %}
+        <span class="traffic-light-badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;"><span class="status-circle" style="background: #64748b;"></span> {{ report.executive_summary.status_label }}</span>
+      {% else %}
+        <span class="traffic-light-badge traffic-red"><span class="status-circle status-circle-red"></span> {{ report.executive_summary.status_label }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <p style="font-size: 9.5pt; line-height: 1.6; margin-bottom: 12px;">
+    {{ report.executive_summary.summary_text }}
+  </p>
+
+  <div class="stat-grid-4 avoid-break">
+    <div class="stat-card">
+      <div class="stat-card-num">{{ report.executive_summary.total_components }}</div>
+      <div class="stat-card-label">Analyzed Nodes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-num">{{ report.executive_summary.total_dependencies }}</div>
+      <div class="stat-card-label">Dependencies</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-num" style="color: {% if report.executive_summary.total_circular_cycles > 0 %}#dc2626{% else %}#16a34a{% endif %};">
+        {{ report.executive_summary.total_circular_cycles }}
+      </div>
+      <div class="stat-card-label">Circular Cycles</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-num" style="color: {% if report.executive_summary.total_critical_vulnerabilities > 0 %}#dc2626{% else %}#16a34a{% endif %};">
+        {{ report.executive_summary.total_critical_vulnerabilities }}
+      </div>
+      <div class="stat-card-label">Critical Flaws</div>
+    </div>
+  </div>
+
+  <!-- Scan Details & Reproducibility Box -->
+  <div class="avoid-break" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; margin: 12px 0 14px 0;">
+    <div style="font-size: 8pt; font-weight: 800; text-transform: uppercase; color: #475569; letter-spacing: 0.5px; margin-bottom: 6px;">
+      Scan Details &amp; Provenance
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+      <div>
+        <div style="font-size: 7.5pt; color: #64748b; text-transform: uppercase; font-weight: 700;">Files Analyzed</div>
+        <div style="font-size: 10.5pt; font-weight: 800; color: #0f172a; font-family: monospace;">{{ report.metadata.files_analyzed }}</div>
+      </div>
+      <div>
+        <div style="font-size: 7.5pt; color: #64748b; text-transform: uppercase; font-weight: 700;">Files Skipped</div>
+        <div style="font-size: 10.5pt; font-weight: 800; color: #0f172a; font-family: monospace;">{{ report.metadata.files_skipped }}</div>
+        <div style="font-size: 7pt; color: #94a3b8;">(.git, venv, cache)</div>
+      </div>
+      <div>
+        <div style="font-size: 7.5pt; color: #64748b; text-transform: uppercase; font-weight: 700;">Results Truncated</div>
+        <div style="font-size: 10.5pt; font-weight: 800; color: {% if report.metadata.truncated %}#dc2626{% else %}#16a34a{% endif %}; font-family: monospace;">{{ 'Yes' if report.metadata.truncated else 'No' }}</div>
+      </div>
+      <div>
+        <div style="font-size: 7.5pt; color: #64748b; text-transform: uppercase; font-weight: 700;">External Dependencies</div>
+        <div style="font-size: 10.5pt; font-weight: 800; color: #0f172a; font-family: monospace;">{{ report.metadata.external_dependencies_count }}</div>
+      </div>
+    </div>
+  </div>
+
+  {% if report.executive_summary.callout %}
+  <div class="callout-box">
+    <div class="callout-header">Leadership Quick Summary</div>
+    <div class="callout-row"><span class="callout-tag callout-tag-means">What this means:</span> <span>{{ report.executive_summary.callout.what_means }}</span></div>
+    <div class="callout-row"><span class="callout-tag callout-tag-matters">Why it matters:</span> <span>{{ report.executive_summary.callout.why_matters }}</span></div>
+    <div class="callout-row"><span class="callout-tag callout-tag-action">What to do:</span> <span>{{ report.executive_summary.callout.what_to_do }}</span></div>
+  </div>
+  {% endif %}
+
+  <!-- Top Identified System Risks -->
+  <h3 style="font-size: 10pt; font-weight: 800; margin: 14px 0 6px 0; text-transform: uppercase;">Top Identified System Risks</h3>
+  <div class="avoid-break">
+    {% for risk in report.executive_summary.top_3_risks %}
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 8.5pt; font-weight: 700; color: #0f172a;">{% if report.executive_summary.top_3_risks | length > 1 %}#{{ risk.rank }} {% endif %}{{ risk.primary_issue }}</span>
+        <span class="severity-badge {% if risk.severity | lower == 'critical' %}badge-critical{% elif risk.severity | lower == 'high' %}badge-high{% elif risk.severity | lower == 'medium' %}badge-medium{% elif risk.severity | lower == 'clean' %}badge-low{% else %}badge-low{% endif %}">{{ risk.severity | upper }}</span>
+      </div>
+      <div style="font-size: 8pt; color: #475569; margin-top: 2px;">{{ risk.plain_english_impact }}</div>
+      {% if risk.remediation_target and risk.remediation_target != 'No action required' %}
+      <div style="font-size: 7.5pt; color: #2563eb; font-weight: 600; margin-top: 4px;">Target: {{ risk.remediation_target }}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- 3. HOW TO READ THIS REPORT (GLOSSARY)                                       -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="section avoid-break">
+  <div class="section-header">
+    <div class="section-title"><span>02</span> How to Read This Report</div>
+    <div style="font-size: 8pt; color: #64748b; font-family: monospace;">NON-TECHNICAL GLOSSARY</div>
+  </div>
+
+  <p style="font-size: 8.5pt; color: #475569; margin-bottom: 10px;">
+    Architecture concepts simplified with everyday analogies so non-technical stakeholders and engineers share the same vocabulary.
+  </p>
+
+  {% for item in report.glossary %}
+  <div class="glossary-card">
+    <div class="glossary-term">📖 {{ item.term }}</div>
+    <div class="glossary-def">{{ item.definition }}</div>
+    <div class="glossary-analogy"><strong>Analogy:</strong> {{ item.analogy }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- 4. HEALTH SCORECARD                                                         -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title"><span>03</span> Health Scorecard</div>
+    <div style="font-size: 8pt; color: #64748b; font-family: monospace;">OVERALL METRICS &amp; GAUGES</div>
+  </div>
+
+  <div class="chart-row-2">
+    <div class="chart-box" style="text-align: center;">
+      {{ report.svg_charts.gauge | safe }}
+    </div>
+    <div class="chart-box">
+      {{ report.svg_charts.subscores | safe }}
+    </div>
+  </div>
+
+  <div class="callout-box">
+    <div class="callout-header">Scorecard Evaluation Guide</div>
+    <div class="callout-row"><span class="callout-tag callout-tag-means">What this means:</span> <span>A weighted score balancing structural boundaries, circular loops, and open CVE vulnerabilities.</span></div>
+    <div class="callout-row"><span class="callout-tag callout-tag-matters">Why it matters:</span> <span>Low scores directly correlate with increased production outages and slower feature delivery times.</span></div>
+    <div class="callout-row"><span class="callout-tag callout-tag-action">What to do:</span> <span>Target a minimum score of 75 (Grade B) to ensure safe enterprise maintainability.</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- 5. ARCHITECTURAL VISUALS & CHARTS                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title"><span>04</span> Architectural Visuals</div>
+    <div style="font-size: 8pt; color: #64748b; font-family: monospace;">SERVER-GENERATED INLINE VECTOR CHARTS</div>
+  </div>
+
+  <div class="chart-row-2">
+    <div class="chart-box">{{ report.svg_charts.layer_distribution | safe }}</div>
+    <div class="chart-box">{{ report.svg_charts.smell_donut | safe }}</div>
+  </div>
+
+  <div class="chart-box" style="margin-bottom: 12px;">
+    {{ report.svg_charts.instability_scatter | safe }}
+  </div>
+
+  <div class="chart-row-2">
+    <div class="chart-box">{{ report.svg_charts.top_hotspots | safe }}</div>
+    <div class="chart-box">{{ report.svg_charts.graph_snapshot | safe }}</div>
+  </div>
+
+  {% if report.refactor_simulation.has_simulation %}
+  <div class="chart-box" style="margin-top: 10px;">
+    {{ report.svg_charts.simulation_comparison | safe }}
+  </div>
+  {% endif %}
+
+  <div class="callout-box">
+    <div class="callout-header">Visual Inspection Guide</div>
+    <div class="callout-row"><span class="callout-tag callout-tag-means">What this means:</span> <span>Topological maps show where code is balanced versus where it gathers into fragile clusters.</span></div>
+    <div class="callout-row"><span class="callout-tag callout-tag-matters">Why it matters:</span> <span>Components far from the Main Sequence line in the scatter plot are either painful to modify or uselessly over-abstracted.</span></div>
+    <div class="callout-row"><span class="callout-tag callout-tag-action">What to do:</span> <span>Refactor modules appearing in the 'Zone of Pain' by introducing cleaner facade boundaries.</span></div>
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- 6. FINDINGS TABLES                                                          -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title"><span>05</span> Detailed Findings Tables</div>
+    <div style="font-size: 8pt; color: #64748b; font-family: monospace;">ACCESSIBLE SEVERITY LABELS &amp; REMEDIATION</div>
+  </div>
+
+  <!-- 6.1 Circular Dependency Cycles -->
+  <h3 style="font-size: 10.5pt; font-weight: 800; margin: 10px 0 6px 0; text-transform: uppercase;">
+    Circular Dependency Loops ({{ report.dependency_analysis.total_cycles }})
+  </h3>
+  {% if report.dependency_analysis.cycles %}
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 15%;">Cycle ID</th>
+        <th style="width: 55%;">Dependency Path</th>
+        <th style="width: 15%;">Severity</th>
+        <th style="width: 15%;">Break Edge</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cyc in report.dependency_analysis.cycles[:6] %}
+      <tr>
+        <td><strong>{{ cyc.cycle_id }}</strong></td>
+        <td style="font-family: monospace; font-size: 8pt;">{{ cyc.formatted_path }}</td>
+        <td><span class="severity-badge badge-high">{{ cyc.severity_label }}</span></td>
+        <td style="font-family: monospace; font-size: 7.5pt;">{{ cyc.recommended_break_edge[0] }} → {{ cyc.recommended_break_edge[1] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="font-size: 8.5pt; color: #16a34a; font-weight: 600;">✓ Zero circular dependency loops detected in the codebase.</p>
+  {% endif %}
+
+  <!-- 6.2 God Classes -->
+  <h3 style="font-size: 10.5pt; font-weight: 800; margin: 18px 0 6px 0; text-transform: uppercase;">
+    Oversized God Classes &amp; Modules ({{ report.code_quality.god_classes | length }})
+  </h3>
+  {% if report.code_quality.god_classes %}
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 30%;">Class / Module</th>
+        <th style="width: 15%;">Lines of Code</th>
+        <th style="width: 15%;">Methods</th>
+        <th style="width: 15%;">Fan-In/Out</th>
+        <th style="width: 25%;">Severity &amp; Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for g in report.code_quality.god_classes[:6] %}
+      <tr>
+        <td><strong>{{ g.name }}</strong><br><span style="font-size: 7.5pt; color: #64748b;">{{ g.file_path }}</span></td>
+        <td style="font-family: monospace;">{{ g.loc }} LOC</td>
+        <td style="font-family: monospace;">{{ g.methods_count }}</td>
+        <td style="font-family: monospace;">{{ g.fan_in }} / {{ g.fan_out }}</td>
+        <td>
+          <span class="severity-badge {% if g.severity_label == 'CRITICAL' %}badge-critical{% else %}badge-high{% endif %}">{{ g.severity_label }}</span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="font-size: 8.5pt; color: #16a34a; font-weight: 600;">✓ No monolithic God Classes detected.</p>
+  {% endif %}
+
+  <!-- 6.3 Security Findings -->
+  <h3 style="font-size: 10.5pt; font-weight: 800; margin: 18px 0 6px 0; text-transform: uppercase;">
+    Security Vulnerabilities &amp; CVE Findings ({{ report.security_findings.total_findings }})
+  </h3>
+  {% if report.security_findings.all_findings %}
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 15%;">Severity</th>
+        <th style="width: 25%;">Vulnerability Title</th>
+        <th style="width: 25%;">CWE / OWASP Standard</th>
+        <th style="width: 35%;">Remediation Guidance</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in report.security_findings.all_findings[:8] %}
+      <tr>
+        <td>
+          <span class="severity-badge {% if f.severity_label == 'CRITICAL' %}badge-critical{% elif f.severity_label == 'HIGH' %}badge-high{% elif f.severity_label == 'MEDIUM' %}badge-medium{% else %}badge-low{% endif %}">
+            {{ f.severity_label }}
+          </span>
+        </td>
+        <td><strong>{{ f.title }}</strong><br><span style="font-size: 7.5pt; color: #64748b;">{{ f.file_path }}</span></td>
+        <td style="font-family: monospace; font-size: 7.5pt;">{{ f.cwe }}<br>{{ f.owasp }}</td>
+        <td style="font-size: 8pt; color: #334155;">{{ f.remediation }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="font-size: 8.5pt; color: #16a34a; font-weight: 600;">✓ Zero high-severity security vulnerabilities detected.</p>
+  {% endif %}
+
+  <div class="callout-box">
+    <div class="callout-header">Findings Remediation Guide</div>
+    <div class="callout-row"><span class="callout-tag callout-tag-means">What this means:</span> <span>Direct compilation of architectural smells, circular loops, and security exposures with explicit labels.</span></div>
+    <div class="callout-row"><span class="callout-tag callout-tag-matters">Why it matters:</span> <span>Every issue includes standard CWE/OWASP identifiers for compliance and audit sign-off.</span></div>
+    <div class="callout-row"><span class="callout-tag callout-tag-action">What to do:</span> <span>Assign each finding to the appropriate sprint backlog using the prioritized action plan below.</span></div>
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- 7. PRIORITIZED ACTION PLAN                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title"><span>06</span> Prioritized Action Plan</div>
+    <div style="font-size: 8pt; color: #64748b; font-family: monospace;">EFFORT ESTIMATES &amp; SEQUENCING</div>
+  </div>
+
+  <!-- Tier 1: Fix Now -->
+  <div class="action-tier">
+    <div class="action-tier-header tier-fix-now">
+      <span>🚨 TIER 1: FIX NOW (IMMEDIATE DEPLOYMENT RISK)</span>
+      <span style="font-size: 8pt; font-family: monospace;">EST: 1–2 DAYS</span>
+    </div>
+    {% for item in report.prioritized_action_plan.fix_now %}
+    <div class="action-card">
+      <div class="action-title">
+        <span>{{ item.title }}</span>
+        <span style="font-size: 7.5pt; color: #b91c1c; font-family: monospace;">{{ item.effort_estimate }}</span>
+      </div>
+      <div class="action-desc">{{ item.description }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Tier 2: Next Sprint -->
+  <div class="action-tier">
+    <div class="action-tier-header tier-next-sprint">
+      <span>⚡ TIER 2: NEXT SPRINT (MODULARITY &amp; TECHNICAL DEBT)</span>
+      <span style="font-size: 8pt; font-family: monospace;">EST: 3–5 DAYS</span>
+    </div>
+    {% for item in report.prioritized_action_plan.next_sprint %}
+    <div class="action-card">
+      <div class="action-title">
+        <span>{{ item.title }}</span>
+        <span style="font-size: 7.5pt; color: #b45309; font-family: monospace;">{{ item.effort_estimate }}</span>
+      </div>
+      <div class="action-desc">{{ item.description }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Tier 3: Later -->
+  <div class="action-tier">
+    <div class="action-tier-header tier-later">
+      <span>📋 TIER 3: LATER (ARCHITECTURE HYGIENE &amp; GOVERNANCE)</span>
+      <span style="font-size: 8pt; font-family: monospace;">EST: 1 SPRINT</span>
+    </div>
+    {% for item in report.prioritized_action_plan.later %}
+    <div class="action-card">
+      <div class="action-title">
+        <span>{{ item.title }}</span>
+        <span style="font-size: 7.5pt; color: #475569; font-family: monospace;">{{ item.effort_estimate }}</span>
+      </div>
+      <div class="action-desc">{{ item.description }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="callout-box">
+    <div class="callout-header">Implementation Sequencing Guide</div>
+    <div class="callout-row"><span class="callout-tag callout-tag-means">What this means:</span> <span>Actionable technical tasks broken into clear effort horizons with estimated person-days.</span></div>
+    <div class="callout-row"><span class="callout-tag callout-tag-matters">Why it matters:</span> <span>Prevents scope creep and gives product managers realistic estimates for technical debt budget.</span></div>
+    <div class="callout-row"><span class="callout-tag callout-tag-action">What to do:</span> <span>Commit Tier 1 immediately and schedule Tier 2 into the upcoming sprint planning session.</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- 8. APPENDIX                                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="section avoid-break">
+  <div class="section-header">
+    <div class="section-title"><span>07</span> Appendix &amp; Methodology</div>
+    <div style="font-size: 8pt; color: #64748b; font-family: monospace;">MATHEMATICAL FOUNDATIONS &amp; AUDIT SETTINGS</div>
+  </div>
+
+  <div style="font-size: 8.5pt; line-height: 1.5; color: #334155;">
+    <div style="margin-bottom: 8px;">
+      <strong>Cycle Detection:</strong> Tarjan's Strongly Connected Components algorithm running in O(V + E) time complexity.
+    </div>
+    <div style="margin-bottom: 8px;">
+      <strong>Community Clustering:</strong> Louvain heuristic modularity maximization across directed dependency edges.
+    </div>
+    <div style="margin-bottom: 8px;">
+      <strong>Centrality &amp; Blast Radius:</strong> Brandes betweenness centrality and PageRank power-iteration.
+    </div>
+    <div style="margin-bottom: 8px;">
+      <strong>Instability Metrics:</strong> Robert C. Martin package coupling formula (Instability I = Ce / (Ca + Ce)).
+    </div>
+    <div style="margin-bottom: 8px;">
+      <strong>Limitations:</strong> Dynamic imports, runtime reflection, and eval() are not statically resolved. Analysis is currently supported for Python and Java codebases only. Tests, sample fixtures, mocks, and third-party vendor directories (node_modules, site-packages, venv) are excluded by default.
+    </div>
+  </div>
+
+  <div style="margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 8px; font-size: 7.5pt; color: #94a3b8; font-family: monospace; display: flex; justify-content: space-between;">
+    <span>Generated by ArchLens Enterprise v{{ report.metadata.archlens_version }}</span>
+    <span>Analysis Hash: {{ report.metadata.report_id }}</span>
+  </div>
+</div>
+
+</body>
+</html>
